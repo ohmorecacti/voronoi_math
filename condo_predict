@@ -1,0 +1,218 @@
+# This is the file used to predict the condominium's prices.
+# Note that it does not generate a Voronoi diagram.
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.spatial import Voronoi, voronoi_plot_2d
+import pandas as pd
+from collections import defaultdict
+import json
+from scipy.stats import ttest_rel, t
+import random
+
+# Function to calculate distance from a point to a line segment (edge)
+def point_to_edge_distance(point, a, b):
+    p = np.array(point)
+    a = np.array(a)
+    b = np.array(b)
+    ab = b - a
+    ap = p - a
+    t = np.dot(ap, ab) / np.dot(ab, ab)
+    t = max(0, min(1, t))  # Clamp t to [0, 1] to ensure it lies on the segment
+    closest_point = a + t * ab
+    distance = np.linalg.norm(p - closest_point)
+    return distance, closest_point
+
+# Code to extract unique condo coordinates from excel file
+def condo_coords(excel_input, coords, condo_name, ppsf):
+
+    # Load the Excel file
+    input_file = excel_input # Replace with your file path
+
+    sheet_name = "Sheet 1"  # Replace with your sheet name
+    df = pd.read_excel(input_file, sheet_name=sheet_name)
+
+    # this is for the coordinates of a condo
+    unique_values = df[coords].dropna().unique().tolist()
+    
+    # this is to find the name of the condo
+    unique_names = df[condo_name].dropna().unique().tolist()
+    
+    # this is to find the mean price of a condo
+    average_price = df[ppsf].dropna().unique().tolist()
+    
+
+    # Write the unique values back to a new Excel file
+    for i in range(len(unique_values)):
+        unique_values[i] = [(float(x) * 10000) for x in unique_values[i].split(", ")]
+
+    return unique_values, unique_names, average_price
+
+sheet_name ="/Users/evanchooqijie/Downloads/ME Data - CCK Jurong Clem.xlsx"
+column_name_coords = "Coordinates"
+condo_name = "Project Name"
+ppsf = "Average Price"
+
+# This is to display the average price
+# Group by 'Condo Name' and calculate the average price
+
+
+# Points returns an array, [0] being the coordinates and [1] being the
+# corresponding condominium.
+points = condo_coords(sheet_name, column_name_coords, condo_name, ppsf)[0]
+condo_names = condo_coords(sheet_name, column_name_coords, condo_name, ppsf)[1]
+average_price = condo_coords(sheet_name, column_name_coords, condo_name, ppsf)[2]
+
+# MAKE SURE THAT EXCEL SHEET IS SORTED BY ALPHABETICAL ORDER
+# OTHERWISE LISTS INDEX WILL BE MESSED UP
+
+# print("Average Price: " + str(average_price))
+# print("\nFull Condo Name list: " + str(condo_names))
+
+# This portion of the code allows the user to select which condo's prices
+# are being predicted. For the sake of testing, this will not be used
+# because it is highly inefficient
+
+# select a random set of condominiums, 60unknown/30known spread
+# This selection of condos is for the unknown condos
+# The current selected_condo dataset is set to the hand-picked data 
+selected_condo = [
+    "DAINTREE RESIDENCE", "THE DAIRY FARM", "SIGNATURE PARK", "THE RAINTREE",
+    "THE HILLSIDE", "CASHEW PARK CONDOMINIUM", "TREE HOUSE", "CHESTNUT VILLE",
+    "HILLVIEW GREEN", "MAYFAIR GARDENS", "HILLVIEW HEIGHTS", "GRAND CHATEAU",
+    "HIGH OAK CONDOMINIUM", "MIDWOOD", "MERAWOODS", "PARK NATURA",
+    "HILLVIEW PARK", "MONTROSA", "ENG KONG GREEN", "THE PETALS", "JARDIN",
+    "PANDAN VALLEY", "ASTOR GREEN", "ECO SANCTUARY", "CASPIAN", "THE NEXUS",
+    "SOUTHAVEN I", "CHANTILLY RISE", "GLENDALE PARK", "MAPLE WOODS"
+]
+
+# This line is used for the random generation of points
+#random.sample(condo_names, 30)
+print("Selected condos: " + str(selected_condo))
+
+# 'rest_condo' will allow the code to cycle through and prices of all other
+# condos, basically it's the points that are being predicted
+rest_condo = [x for x in condo_names if x not in selected_condo]
+print("\nRest of condos: " + str(rest_condo))
+
+predict_data = []
+actual_data = []
+
+# Loop to collect data
+for condo in selected_condo:
+    print("\nData set for: " + condo)
+    query_point_index = condo
+
+    # To generate the price of the condo to be predicted, the condo must first
+    # be added to the list so its coordinates can be saved.
+    rest_condo.append(condo)
+    
+    selected_condo_points = []
+    selected_condo_ppsf = []
+    for i in range(len(rest_condo)):
+        selected_condo_points.append(points[condo_names.index(rest_condo[i])])
+        selected_condo_ppsf.append(average_price[condo_names.index(rest_condo[i])])
+                         
+    # print("\nSelected condo points: " + str(selected_condo_points))
+    # Compute Voronoi diagram
+    # In order to compute voronoi diagram, must include the point to be predicted
+    vor = Voronoi(selected_condo_points)
+    
+    # Remove the predicted condo's ppsf from the list 
+    selected_condo_ppsf.remove(selected_condo_ppsf[rest_condo.index(query_point_index)])
+    # print("\nSelected condo ppsf: " + str(selected_condo_ppsf))
+
+    # Get the corresponding point from selected_condo_points
+    query_point_index = selected_condo.index(query_point_index)
+    query_point = selected_condo_points[query_point_index]
+    
+    # Find the Voronoi region corresponding to the query point
+    region_index = vor.point_region[query_point_index]
+    region_vertices = vor.regions[region_index]
+
+    # Filter out invalid regions (infinite edges)
+    if -1 in region_vertices:
+        region_vertices = [v for v in region_vertices if v != -1]
+
+    # Calculate distances from query_point to all other points
+    distances_to_points = []
+
+    for idx, point in enumerate(selected_condo_points):
+        if np.array_equal(query_point, point):  # Skip the query point itself
+            continue
+        distance = np.linalg.norm(np.array(query_point) - np.array(point))
+        distances_to_points.append((distance, rest_condo[idx]))  # Append distance and condo name
+    
+    # print("\nDistances to points: " + str(distances_to_points))
+
+    # MATH EQUATION TO PREDICT THE PRICE
+    # Separate the numerator from the denominator because need to sum "i"
+    predicted_price_num = 0
+    predicted_price_den = 0
+    # We take the length of distances_to_points instead of selected_condo because
+    # Distances_to_points excludes the predicted point, which is what we want
+    for i in range(len(distances_to_points)):
+        
+        predicted_price_num += (selected_condo_ppsf[i] * (1/(distances_to_points[i][0])))
+        predicted_price_den += 1/(distances_to_points[i][0])
+
+
+    predicted_price = predicted_price_num/predicted_price_den
+    print("\n\nPredicted price: " + str(predicted_price))
+    print("Actual Price: " + str(average_price[condo_names.index(condo)]))
+
+    # Reset rest_condo
+    rest_condo = rest_condo[:-1]
+    
+    print("---------------------------------------------------------------\n")
+    predict_data.append(predicted_price)
+    actual_data.append(average_price[condo_names.index(condo)])
+
+# Calculating the percentage difference of the predicted price condo from
+# the actual price
+# This works because the position of condo names in rest_condo is matching
+# to predict_data
+
+percentage_diff = []
+for i in range(len(selected_condo)):
+    percentage_diff.append(((max(predict_data[i], actual_data[i]) - min(predict_data[i], actual_data[i]))/actual_data[i])*100)
+
+rmsd = 0
+# Calculating the RMSD
+for i in range(len(selected_condo)):
+    rmsd += (predict_data[i] - actual_data[i])**2
+rmsd = ((1/len(selected_condo))*(rmsd))**0.5
+
+data = {
+    "Condo": selected_condo,
+    "Predicted Price": predict_data,
+    "Actual Price": actual_data,
+    "% diff": percentage_diff,
+    }
+
+
+df = pd.DataFrame(data)
+pd.options.display.max_rows = 100
+print(df)
+
+print("\nRMSE: " + str(rmsd))
+
+significance_level = 0.05 # 5%
+degree_freedom = len(selected_condo)-1
+
+# T-test calculation
+t_value, p_value = ttest_rel(predict_data, actual_data)
+critical_value = t.ppf(1-(significance_level)/2, degree_freedom)
+print("T-value: " + str(abs(t_value)))
+
+# If t-value is greater than critical_value, then it means
+# there is sufficient evidence to prove hypothesis
+print(f"Critical value: {critical_value}")
+print(t_value < critical_value)
+
+
+
+
+
+
+
