@@ -1,6 +1,9 @@
 
 This Github contains the code to the generation of Voronoi diagrams and other equations to predict the prices of condominiums in Singapore. 
 
+condo_predict contains the code used to predict condo prices
+condo_voronoi contains the code to gerneate the voronoi diagrams.
+
 Below contains the screenshots of data for predicting randomly selected points. 
 
 <img width="595" alt="Screenshot 2025-01-21 at 8 21 38 AM" src="https://github.com/user-attachments/assets/9bef36c6-fb93-4523-a010-0b5fa7177d06" />
