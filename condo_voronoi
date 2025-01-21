@@ -1,0 +1,171 @@
+# This is the code to generate the voronoi diagrams, please note that 
+# it does not give the predicted values of condominiums.
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.spatial import Voronoi, voronoi_plot_2d
+import pandas as pd
+
+# Function to calculate distance from a point to a line segment (edge)
+def point_to_edge_distance(point, a, b):
+    p = np.array(point)
+    a = np.array(a)
+    b = np.array(b)
+    ab = b - a
+    ap = p - a
+    t = np.dot(ap, ab) / np.dot(ab, ab)
+    t = max(0, min(1, t))  # Clamp t to [0, 1] to ensure it lies on the segment
+    closest_point = a + t * ab
+    distance = np.linalg.norm(p - closest_point)
+    return distance, closest_point
+
+def condo_coords(excel_input, coords, condo_name, ppsf):
+
+    # Load the Excel file
+    input_file = excel_input # Replace with file path
+
+    sheet_name = "Sheet 1"  # Replace with your sheet name
+    df = pd.read_excel(input_file, sheet_name=sheet_name)
+
+    # this is for the coordinates of a condo
+    unique_values = df[coords].dropna().unique().tolist()
+    
+    # this is to find the name of the condo
+    unique_names = df[condo_name].dropna().unique().tolist()
+    
+    # this is to find the mean price of a condo
+    average_price = df[ppsf].dropna().unique().tolist()
+    
+
+    # Write the unique values back to a new Excel file
+    for i in range(len(unique_values)):
+        unique_values[i] = [(float(x) * 10000) for x in unique_values[i].split(", ")]
+
+    return unique_values, unique_names, average_price
+
+
+def point_on_edge(point, a, b, tol=1e-9):
+
+    p = np.array(point)
+    a = np.array(a)
+    b = np.array(b)
+    
+    # Check for collinearity using the cross product
+    ab = b - a
+    ap = p - a
+    cross_product = np.cross(ab, ap)
+    if abs(cross_product) > tol:  # Not collinear
+        return False
+    
+    # Check if the point lies within the bounding box of the edge
+    if not (min(a[0], b[0]) <= p[0] <= max(a[0], b[0]) and
+            min(a[1], b[1]) <= p[1] <= max(a[1], b[1])):
+        return False
+    
+    # The point is collinear and lies within the edge bounds
+    return True
+
+
+# Points returns an array, [0] being the coordinates and [1] being the
+# corresponding condominium. 
+sheet_name ="/Users/evanchooqijie/Downloads/ME Data - CCK Jurong Clem.xlsx"
+column_name_coords = "Coordinates"
+condo_name = "Project Name"
+ppsf = "Average Price"
+
+
+# Points returns an array, [0] being the coordinates and [1] being the
+# corresponding condominium.
+points = condo_coords(sheet_name, column_name_coords, condo_name, ppsf)[0]
+condo_names = condo_coords(sheet_name, column_name_coords, condo_name, ppsf)[1]
+average_price = condo_coords(sheet_name, column_name_coords, condo_name, ppsf)[2]
+
+print(condo_names)
+print(len(condo_names))
+print(points)
+
+# this is the portion to highlight which condos have been selected to be predicted.
+highlighted_condos = [
+    "DAINTREE RESIDENCE", "THE DAIRY FARM", "SIGNATURE PARK", "THE RAINTREE",
+    "THE HILLSIDE", "CASHEW PARK CONDOMINIUM", "TREE HOUSE", "CHESTNUT VILLE",
+    "HILLVIEW GREEN", "MAYFAIR GARDENS", "HILLVIEW HEIGHTS", "GRAND CHATEAU",
+    "HIGH OAK CONDOMINIUM", "MIDWOOD", "MERAWOODS", "PARK NATURA",
+    "HILLVIEW PARK", "MONTROSA", "ENG KONG GREEN", "THE PETALS", "JARDIN",
+    "PANDAN VALLEY", "ASTOR GREEN", "ECO SANCTUARY", "CASPIAN", "THE NEXUS",
+    "SOUTHAVEN I", "CHANTILLY RISE", "GLENDALE PARK", "MAPLE WOODS"
+]
+vor = Voronoi(points)
+
+# Query point (not used in code)
+query_point_index = input("Input condo name: ").upper()  # Input of condominium name
+while (query_point_index is not float) and (query_point_index not in condo_names):
+    query_point_index = input("Wrong type or name, enter again").upper()
+
+query_point_index = condo_names.index(query_point_index)
+query_point = points[query_point_index]
+
+# Find the Voronoi region corresponding to the query point
+region_index = vor.point_region[query_point_index]
+region_vertices = vor.regions[region_index]
+
+# Filter out invalid regions (infinite edges)
+if -1 in region_vertices:
+    region_vertices = [v for v in region_vertices if v != -1]
+
+# Calculate distances to vertices in the region
+vertex_distances = []
+for vertex_index in region_vertices:
+    vertex = vor.vertices[vertex_index]
+    distance = np.linalg.norm(vertex - query_point)
+    vertex_distances.append((distance, vertex))
+
+# Calculate distances to edges in the region
+edge_distances = []
+for i in range(len(region_vertices)):
+    v1 = vor.vertices[region_vertices[i]]
+    v2 = vor.vertices[region_vertices[(i + 1) % len(region_vertices)]]  # Wrap around
+    distance, closest_point = point_to_edge_distance(query_point, v1, v2)
+    edge_distances.append((distance, closest_point, (v1, v2)))
+
+# Plot Voronoi diagram
+fig = voronoi_plot_2d(vor, show_vertices=False, line_colors='orange',
+                      line_width=2, line_alpha=0.6, point_size=2)
+
+# Add the query point to the plot
+# plt.scatter(*query_point, color='red', label='Query Point')
+
+# Plot each condo, highlighting those in the highlighted_condos list
+for idx, point in enumerate(points):
+    # Check if the condo name is in the highlighted_condos list
+    if condo_names[idx] in highlighted_condos:
+        # Highlight these condos with a distinct color (e.g., green)
+        plt.scatter(point[0], point[1], color='green', label=f'{condo_names[idx]} (highlighted)', s=30)
+    else:
+        # Default color for other condos
+        plt.scatter(point[0], point[1], color='black', s=10)
+
+    # Add labels
+    plt.text(point[0] + 0.1, point[1] + 0.1, str(condo_names[idx]), color='black', fontsize=8)
+
+# Prevent duplicate labels in the legend
+handles, labels = plt.gca().get_legend_handles_labels()
+unique_labels = dict(zip(labels, handles))
+    
+
+# NOTE:
+# Distance from vertex to point is annotated by the green line
+# Distance from edge to point is annotated by red line 
+
+# Show the plot
+
+plt.show()
+
+# Print distances (optional)
+print("Vertex Distances:")
+for dist, vertex in vertex_distances:
+    print(f"Distance: {dist:.2f}, Vertex: {vertex}")
+
+print("\nEdge Distances:")
+for dist, closest, edge in edge_distances:
+    print(f"Distance: {dist:.2f}, Closest Point: {closest}, Edge: {edge}")
+
