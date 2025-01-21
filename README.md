@@ -1,4 +1,4 @@
-<img width="595" alt="Screenshot 2025-01-21 at 8 21 38 AM" src="https://github.com/user-attachments/assets/91723cdf-9213-495b-bcf9-bc2a8bfc0c73" /># voronoi_math
+
 This Github contains the code to the generation of Voronoi diagrams and other equations to predict the prices of condominiums in Singapore. 
 
 Below contains the screenshots of data for predicting randomly selected points. 
