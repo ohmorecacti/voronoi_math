@@ -1,6 +1,3 @@
-# This is the file used to predict the condominium's prices.
-# Note that it does not generate a Voronoi diagram.
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi, voronoi_plot_2d
@@ -48,6 +45,36 @@ def condo_coords(excel_input, coords, condo_name, ppsf):
 
     return unique_values, unique_names, average_price
 
+# Function to find adjacent points for a given cell
+def find_adjacent_points(vor, query_index,rest_condo):
+    """
+    Find the indices and coordinates of points adjacent to a given cell in the Voronoi diagram.
+    
+    Args:
+        vor (Voronoi): The Voronoi diagram object.
+        query_index (int): The index of the query point.
+    
+    Returns:
+        list of int: Indices of the adjacent points.
+        list of tuple: Coordinates of the adjacent points.
+    """
+    adjacent_indices = []
+    
+    # Iterate through all ridges
+    for ridge in vor.ridge_points:
+        if query_index in ridge:  # Check if the query point is part of this ridge
+            # Get the other point in the ridge
+            other_index = ridge[0] if ridge[1] == query_index else ridge[1]
+            adjacent_indices.append(other_index)
+    
+    # Get the coordinates of the adjacent points
+    adjacent_coordinates = [vor.points[i] for i in adjacent_indices]
+    adjacent_condos = [rest_condo[adjacent_indices[i]] for i in range(len(adjacent_indices))]
+
+    
+    return adjacent_indices, adjacent_coordinates, adjacent_condos
+
+
 sheet_name ="/Users/evanchooqijie/Downloads/ME Data - CCK Jurong Clem.xlsx"
 column_name_coords = "Coordinates"
 condo_name = "Project Name"
@@ -73,11 +100,18 @@ average_price = condo_coords(sheet_name, column_name_coords, condo_name, ppsf)[2
 # are being predicted. For the sake of testing, this will not be used
 # because it is highly inefficient
 
+# I want to use the selected condos as the ones I want predicting for
+'''
+selected_condo = input("Input the condos you want (including predicted one), separated by ', ': ").upper().split(", ")
+while not set(selected_condo).issubset(condo_names):
+    selected_condo = input("Invalid input. Re-enter condo name. ")
+'''
+
 # select a random set of condominiums, 60unknown/30known spread
 # This selection of condos is for the unknown condos
-# The current selected_condo dataset is set to the hand-picked data 
-selected_condo = [
-    "DAINTREE RESIDENCE", "THE DAIRY FARM", "SIGNATURE PARK", "THE RAINTREE",
+selected_condo = random.sample(condo_names, 30)
+'''
+["DAINTREE RESIDENCE", "THE DAIRY FARM", "SIGNATURE PARK", "THE RAINTREE",
     "THE HILLSIDE", "CASHEW PARK CONDOMINIUM", "TREE HOUSE", "CHESTNUT VILLE",
     "HILLVIEW GREEN", "MAYFAIR GARDENS", "HILLVIEW HEIGHTS", "GRAND CHATEAU",
     "HIGH OAK CONDOMINIUM", "MIDWOOD", "MERAWOODS", "PARK NATURA",
@@ -85,9 +119,8 @@ selected_condo = [
     "PANDAN VALLEY", "ASTOR GREEN", "ECO SANCTUARY", "CASPIAN", "THE NEXUS",
     "SOUTHAVEN I", "CHANTILLY RISE", "GLENDALE PARK", "MAPLE WOODS"
 ]
+'''
 
-# This line is used for the random generation of points
-#random.sample(condo_names, 30)
 print("Selected condos: " + str(selected_condo))
 
 # 'rest_condo' will allow the code to cycle through and prices of all other
@@ -101,11 +134,20 @@ actual_data = []
 # Loop to collect data
 for condo in selected_condo:
     print("\nData set for: " + condo)
+    # Set query_point_index to the predicted condo name
     query_point_index = condo
 
     # To generate the price of the condo to be predicted, the condo must first
     # be added to the list so its coordinates can be saved.
     rest_condo.append(condo)
+
+    '''
+    # Query point - User input
+    query_point_index = input("Input predicted condo name: ").upper()  # Input of condominium name
+    while query_point_index not in condo_names:
+        query_point_index = input("Wrong type or name, enter again: ").upper()
+    selected_condo.append(query_point_index)
+    '''
     
     selected_condo_points = []
     selected_condo_ppsf = []
@@ -117,14 +159,17 @@ for condo in selected_condo:
     # Compute Voronoi diagram
     # In order to compute voronoi diagram, must include the point to be predicted
     vor = Voronoi(selected_condo_points)
-    
+
     # Remove the predicted condo's ppsf from the list 
     selected_condo_ppsf.remove(selected_condo_ppsf[rest_condo.index(query_point_index)])
     # print("\nSelected condo ppsf: " + str(selected_condo_ppsf))
 
     # Get the corresponding point from selected_condo_points
-    query_point_index = selected_condo.index(query_point_index)
+    # This is finding the index of the predicted condo in rest_condo (should be the last one)
+    query_point_index = rest_condo.index(query_point_index)
+    print(query_point_index)
     query_point = selected_condo_points[query_point_index]
+    print(query_point)
     
     # Find the Voronoi region corresponding to the query point
     region_index = vor.point_region[query_point_index]
@@ -145,6 +190,10 @@ for condo in selected_condo:
     
     # print("\nDistances to points: " + str(distances_to_points))
 
+    # Find adjacent points
+    adj_indices, adj_coords, adj_condo = find_adjacent_points(vor, query_point_index, rest_condo)
+
+    print(adj_condo)
     # MATH EQUATION TO PREDICT THE PRICE
     # Separate the numerator from the denominator because need to sum "i"
     predicted_price_num = 0
@@ -210,9 +259,7 @@ print("T-value: " + str(abs(t_value)))
 print(f"Critical value: {critical_value}")
 print(t_value < critical_value)
 
-
-
-
-
-
-
+# If p-value is less than significance_level, then it means
+# there is sufficient evidence to prove hypothesis
+# print(f"P-value: {p_value}")
+# print(if p_value > significance_level)
