@@ -6,8 +6,8 @@ condo_voronoi contains the code to gerneate the voronoi diagrams.
 
 Below contains the screenshots of data for predicting randomly selected points. 
 
-<img width="595" alt="Screenshot 2025-01-21 at 8 21 38 AM" src="https://github.com/user-attachments/assets/9bef36c6-fb93-4523-a010-0b5fa7177d06" />
-<img width="600" alt="Screenshot 2025-01-21 at 8 22 05 AM" src="https://github.com/user-attachments/assets/16ea2c2c-36d6-43a7-a24b-af6e1a66df3e" />
-<img width="609" alt="Screenshot 2025-01-21 at 8 25 28 AM" src="https://github.com/user-attachments/assets/d7aca44c-7e9a-4390-a014-58df02d01025" />
-<img width="586" alt="Screenshot 2025-01-21 at 8 26 53 AM" src="https://github.com/user-attachments/assets/76053db3-db6a-4539-b620-72926085fe4a" />
-<img width="556" alt="Screenshot 2025-01-21 at 8 29 21 AM" src="https://github.com/user-attachments/assets/729947eb-0788-4c0a-9a29-98410a6e3e6d" />
+<img width="591" alt="Screenshot 2025-01-22 at 10 46 16 PM" src="https://github.com/user-attachments/assets/15a9c512-eda9-430d-b0a5-3c1e18eceb2b" />
+<img width="603" alt="Screenshot 2025-01-22 at 10 46 45 PM" src="https://github.com/user-attachments/assets/ad68e7fb-1c85-430f-8f90-8bad5301c65d" />
+<img width="592" alt="Screenshot 2025-01-22 at 10 47 04 PM" src="https://github.com/user-attachments/assets/b6068276-bb61-49ac-8b7c-7cc98a78fd55" />
+<img width="592" alt="Screenshot 2025-01-22 at 10 47 23 PM" src="https://github.com/user-attachments/assets/500e8400-5f3a-4ee8-b84f-d03f9bc8a1a7" />
+<img width="598" alt="Screenshot 2025-01-22 at 10 51 50 PM" src="https://github.com/user-attachments/assets/b3c9e7fe-9fb9-4f67-add8-bc8bedf07337" />
