@@ -7,6 +7,7 @@ Below contains the data tables for the randomly selected points.
 
 Please refer to the "Code" section to view the tables in proper format. 
 The Secton is located on the bar above this text section. 
+There should be "Preview, Code, Blame". Select "Code".
 
 Test 1
                          Condo  Predicted Price  Actual Price      % diff
