@@ -5,6 +5,8 @@ condo_voronoi contains the code to gerneate the voronoi diagrams.
 
 Below contains the data tables for the randomly selected points.
 
+Please refer to the "Code" section to view the tables in proper format. 
+
 Test 1
                          Condo  Predicted Price  Actual Price      % diff
 0                 SOUTHAVEN II      1235.705747   1210.105263    2.115558
