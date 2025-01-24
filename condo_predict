@@ -108,8 +108,11 @@ while not set(selected_condo).issubset(condo_names):
 '''
 
 # select a random set of condominiums, 60unknown/30known spread
+# random.sample(condo_names, 64)
+
 # This selection of condos is for the unknown condos
-selected_condo = random.sample(condo_names, 30)
+selected_condo =['1 KING ALBERT PARK', 'BUKIT REGENCY', 'CASA ESPERANZA', 'CASHEW HEIGHTS CONDOMINIUM', 'CAVENDISH PARK', 'CLEMENTI PARK', 'ESPA', 'FLORIDIAN', 'FORESQUE RESIDENCES', 'FREESIA WOODS', 'GARDENVISTA', 'GUILIN VIEW', 'HAZEL PARK CONDOMINIUM', 'HIGHGATE', 'HILLBROOKS', 'HILLINGTON GREEN', 'HILLSTA', 'HILLTOP GROVE', 'HILLVIEW REGENCY', 'HILLVIEW RESIDENCE', 'HILLVISTA', 'HUME PARK I', 'HUME PARK II', 'IVORY HEIGHTS', 'J GATEWAY', 'KI RESIDENCES AT BROOKVALE', 'KINGSFORD . HILLVIEW PEAK', 'KISMIS COURT', 'LAKE GRANDE', 'LAKEHOLMZ', 'LAKEPOINT CONDOMINIUM', 'LAKEVILLE', 'LE WOOD', 'MAYFAIR MODERN', 'MEADOWLODGE', 'MERALODGE', 'MI CASA', 'NICON GARDENS', 'PALM GARDENS', 'PARC OASIS', 'PARC PALAIS', 'PARC VISTA', 'PINE GROVE', 'REGENT GROVE', 'REGENT HEIGHTS', 'SHERWOOD CONDOMINIUM', 'SOUTHAVEN II', 'SPRINGDALE CONDOMINIUM', 'SUMMERHILL', 'SUNSET LODGE', 'SYMPHONY HEIGHTS', 'TERRENE AT BUKIT TIMAH', 'THE BLOSSOMVALE', 'THE CASCADIA', 'THE CREEK @ BUKIT', 'THE JADE', 'THE LAKEFRONT RESIDENCES', 'THE LAKESHORE', 'THE LANAI', 'THE MADEIRA', 'THE MAYFAIR', 'THE SKYWOODS', 'THE STERLING', 'THE WARREN']
+
 '''
 ["DAINTREE RESIDENCE", "THE DAIRY FARM", "SIGNATURE PARK", "THE RAINTREE",
     "THE HILLSIDE", "CASHEW PARK CONDOMINIUM", "TREE HOUSE", "CHESTNUT VILLE",
@@ -121,19 +124,19 @@ selected_condo = random.sample(condo_names, 30)
 ]
 '''
 
-print("Selected condos: " + str(selected_condo))
+#print("Selected condos: " + str(selected_condo))
 
 # 'rest_condo' will allow the code to cycle through and prices of all other
 # condos, basically it's the points that are being predicted
 rest_condo = [x for x in condo_names if x not in selected_condo]
-print("\nRest of condos: " + str(rest_condo))
+#print("\nRest of condos: " + str(rest_condo))
 
 predict_data = []
 actual_data = []
 
 # Loop to collect data
 for condo in selected_condo:
-    print("\nData set for: " + condo)
+    #print("\nData set for: " + condo)
     # Set query_point_index to the predicted condo name
     query_point_index = condo
 
@@ -167,9 +170,9 @@ for condo in selected_condo:
     # Get the corresponding point from selected_condo_points
     # This is finding the index of the predicted condo in rest_condo (should be the last one)
     query_point_index = rest_condo.index(query_point_index)
-    print(query_point_index)
+    #print(query_point_index)
     query_point = selected_condo_points[query_point_index]
-    print(query_point)
+    #print(query_point)
     
     # Find the Voronoi region corresponding to the query point
     region_index = vor.point_region[query_point_index]
@@ -193,7 +196,7 @@ for condo in selected_condo:
     # Find adjacent points
     adj_indices, adj_coords, adj_condo = find_adjacent_points(vor, query_point_index, rest_condo)
 
-    print(adj_condo)
+    #print(adj_condo)
     # MATH EQUATION TO PREDICT THE PRICE
     # Separate the numerator from the denominator because need to sum "i"
     predicted_price_num = 0
@@ -207,13 +210,14 @@ for condo in selected_condo:
 
 
     predicted_price = predicted_price_num/predicted_price_den
-    print("\n\nPredicted price: " + str(predicted_price))
-    print("Actual Price: " + str(average_price[condo_names.index(condo)]))
+    
+    #print("\n\nPredicted price: " + str(predicted_price))
+    #print("Actual Price: " + str(average_price[condo_names.index(condo)]))
 
     # Reset rest_condo
     rest_condo = rest_condo[:-1]
     
-    print("---------------------------------------------------------------\n")
+    #print("---------------------------------------------------------------\n")
     predict_data.append(predicted_price)
     actual_data.append(average_price[condo_names.index(condo)])
 
@@ -263,3 +267,8 @@ print(t_value < critical_value)
 # there is sufficient evidence to prove hypothesis
 # print(f"P-value: {p_value}")
 # print(if p_value > significance_level)
+
+
+
+
+
