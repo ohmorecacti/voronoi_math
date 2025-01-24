@@ -142,16 +142,7 @@ fig = voronoi_plot_2d(vor, show_vertices=False, line_colors='orange',
 
 # Add the query point to the plot
 # plt.scatter(*query_point, color='red', label='Query Point')
-'''
-# Label each point with its sequence number
-for idx, point in enumerate(points):
-    plt.text(point[0] + 0.1, point[1] + 0.1, str(condo_names[idx]), color='black', fontsize=4)
-'''
-'''
-# Highlight adjacent points
-for i, adj_point in enumerate(adjacent_points):
-    plt.scatter(*adj_point, color='blue', label=f'Adjacent: {adjacent_names[i]}')
-'''
+
 # Plot each condo, highlighting those in the highlighted_condos list
 for idx, point in enumerate(points):
     # Check if the condo name is in the highlighted_condos list
@@ -168,39 +159,6 @@ for idx, point in enumerate(points):
 # Prevent duplicate labels in the legend
 handles, labels = plt.gca().get_legend_handles_labels()
 unique_labels = dict(zip(labels, handles))
-
-'''
-# Annotate vertex distances and draw green lines to vertices
-for dist, vertex in vertex_distances:
-    plt.scatter(*vertex, color='green', s=30)  # Mark the vertex
-    plt.text(vertex[0] + 0.2, vertex[1] + 0.2, f'{dist:.2f}', fontsize=8, color='green')  # Annotate distance
-    # Draw a green line from the query point to the vertex
-    plt.plot([query_point[0], vertex[0]], [query_point[1], vertex[1]], 'g--', alpha=0.8)
-
-# Annotate edge distances and draw red lines to edges
-# Handle distances to edges (finite and infinite)
-for dist, closest, edge in edge_distances:
-    # Unpack the start and end points of the edge
-    edge_start, edge_end = edge
-
-    # Check if the closest point lies on the edge
-    if not point_on_edge(closest, edge_start, edge_end):
-        continue  # Skip this edge if the closest point is not valid
-
-    # Check if the closest point is a vertex to avoid overlapping
-    if any(np.allclose(closest, vertex) for vertex in vor.vertices):
-        continue
-
-    # Plot the closest point on the edge
-    plt.scatter(*closest, color='red', s=30)
-
-    # Draw a line from the query point to the closest point
-    plt.plot([query_point[0], closest[0]], [query_point[1], closest[1]], 'r--', alpha=0.6)
-
-    # Annotate the distance
-    midpoint = (closest + query_point) / 2
-    plt.text(midpoint[0], midpoint[1], f'{dist:.2f}', fontsize=8, color='red')
-'''
 
 # NOTE:
 # Distance from vertex to point is annotated by the green line
