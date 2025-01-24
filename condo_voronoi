@@ -1,5 +1,3 @@
-# This is the code to generate the voronoi diagrams, please note that 
-# it does not give the predicted values of condominiums.
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -73,6 +71,9 @@ column_name_coords = "Coordinates"
 condo_name = "Project Name"
 ppsf = "Average Price"
 
+# This is to display the average price
+# Group by 'Condo Name' and calculate the average price
+
 
 # Points returns an array, [0] being the coordinates and [1] being the
 # corresponding condominium.
@@ -84,9 +85,7 @@ print(condo_names)
 print(len(condo_names))
 print(points)
 
-# this is the portion to highlight which condos have been selected to be predicted.
-highlighted_condos = [
-    "DAINTREE RESIDENCE", "THE DAIRY FARM", "SIGNATURE PARK", "THE RAINTREE",
+highlighted_condos2 = ["DAINTREE RESIDENCE", "THE DAIRY FARM", "SIGNATURE PARK", "THE RAINTREE",
     "THE HILLSIDE", "CASHEW PARK CONDOMINIUM", "TREE HOUSE", "CHESTNUT VILLE",
     "HILLVIEW GREEN", "MAYFAIR GARDENS", "HILLVIEW HEIGHTS", "GRAND CHATEAU",
     "HIGH OAK CONDOMINIUM", "MIDWOOD", "MERAWOODS", "PARK NATURA",
@@ -94,9 +93,19 @@ highlighted_condos = [
     "PANDAN VALLEY", "ASTOR GREEN", "ECO SANCTUARY", "CASPIAN", "THE NEXUS",
     "SOUTHAVEN I", "CHANTILLY RISE", "GLENDALE PARK", "MAPLE WOODS"
 ]
+
+
+highlighted_condos = [x for x in condo_names if x not in highlighted_condos2]
+
+selected_condo_points = []
+for i in range(len(highlighted_condos)):
+    selected_condo_points.append(points[condo_names.index(highlighted_condos[i])])
+
+points = selected_condo_points
+
 vor = Voronoi(points)
 
-# Query point (not used in code)
+# Query point
 query_point_index = input("Input condo name: ").upper()  # Input of condominium name
 while (query_point_index is not float) and (query_point_index not in condo_names):
     query_point_index = input("Wrong type or name, enter again").upper()
@@ -133,24 +142,65 @@ fig = voronoi_plot_2d(vor, show_vertices=False, line_colors='orange',
 
 # Add the query point to the plot
 # plt.scatter(*query_point, color='red', label='Query Point')
-
+'''
+# Label each point with its sequence number
+for idx, point in enumerate(points):
+    plt.text(point[0] + 0.1, point[1] + 0.1, str(condo_names[idx]), color='black', fontsize=4)
+'''
+'''
+# Highlight adjacent points
+for i, adj_point in enumerate(adjacent_points):
+    plt.scatter(*adj_point, color='blue', label=f'Adjacent: {adjacent_names[i]}')
+'''
 # Plot each condo, highlighting those in the highlighted_condos list
 for idx, point in enumerate(points):
     # Check if the condo name is in the highlighted_condos list
-    if condo_names[idx] in highlighted_condos:
+    if highlighted_condos[idx] in highlighted_condos:
         # Highlight these condos with a distinct color (e.g., green)
-        plt.scatter(point[0], point[1], color='green', label=f'{condo_names[idx]} (highlighted)', s=30)
+        plt.scatter(point[0], point[1], color='green', label=f'{highlighted_condos[idx]} (highlighted)', s=30)
     else:
         # Default color for other condos
         plt.scatter(point[0], point[1], color='black', s=10)
 
     # Add labels
-    plt.text(point[0] + 0.1, point[1] + 0.1, str(condo_names[idx]), color='black', fontsize=8)
+    plt.text(point[0] + 0.1, point[1] + 0.1, str(highlighted_condos[idx]), color='black', fontsize=8)
 
 # Prevent duplicate labels in the legend
 handles, labels = plt.gca().get_legend_handles_labels()
 unique_labels = dict(zip(labels, handles))
-    
+
+'''
+# Annotate vertex distances and draw green lines to vertices
+for dist, vertex in vertex_distances:
+    plt.scatter(*vertex, color='green', s=30)  # Mark the vertex
+    plt.text(vertex[0] + 0.2, vertex[1] + 0.2, f'{dist:.2f}', fontsize=8, color='green')  # Annotate distance
+    # Draw a green line from the query point to the vertex
+    plt.plot([query_point[0], vertex[0]], [query_point[1], vertex[1]], 'g--', alpha=0.8)
+
+# Annotate edge distances and draw red lines to edges
+# Handle distances to edges (finite and infinite)
+for dist, closest, edge in edge_distances:
+    # Unpack the start and end points of the edge
+    edge_start, edge_end = edge
+
+    # Check if the closest point lies on the edge
+    if not point_on_edge(closest, edge_start, edge_end):
+        continue  # Skip this edge if the closest point is not valid
+
+    # Check if the closest point is a vertex to avoid overlapping
+    if any(np.allclose(closest, vertex) for vertex in vor.vertices):
+        continue
+
+    # Plot the closest point on the edge
+    plt.scatter(*closest, color='red', s=30)
+
+    # Draw a line from the query point to the closest point
+    plt.plot([query_point[0], closest[0]], [query_point[1], closest[1]], 'r--', alpha=0.6)
+
+    # Annotate the distance
+    midpoint = (closest + query_point) / 2
+    plt.text(midpoint[0], midpoint[1], f'{dist:.2f}', fontsize=8, color='red')
+'''
 
 # NOTE:
 # Distance from vertex to point is annotated by the green line
